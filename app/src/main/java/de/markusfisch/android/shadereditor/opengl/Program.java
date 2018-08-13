@@ -9,9 +9,7 @@ class Program {
 		return infoLog;
 	}
 
-	static int loadProgram(
-			String vertexShader,
-			String fragmentShader) {
+	static int loadProgram(String vertexShader, String fragmentShader) {
 		int vs, fs, p = 0;
 
 		if ((vs = compileShader(
@@ -21,6 +19,10 @@ class Program {
 					GLES20.GL_FRAGMENT_SHADER,
 					fragmentShader)) != 0) {
 				p = linkProgram(vs, fs);
+				if (!validateProgram(p)) {
+					GLES20.glDeleteProgram(p);
+					p = 0;
+				}
 
 				// mark shader objects as deleted so they get
 				// deleted as soon as glDeleteProgram() does
@@ -33,6 +35,14 @@ class Program {
 		}
 
 		return p;
+	}
+
+	private static boolean validateProgram(int p) {
+		GLES20.glValidateProgram(p);
+		int params[] = new int[1];
+		GLES20.glGetProgramiv(p, GLES20.GL_VALIDATE_STATUS,
+				params, 0);
+		return params[0] == GLES20.GL_TRUE;
 	}
 
 	private static int linkProgram(int... shaders) {
